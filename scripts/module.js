@@ -50,7 +50,8 @@ function patch_TokenSetPosition() {
             if (this._controlled && isVisible) {
                 let pad = 50;
                 let gp = this.getGlobalPosition();
-                if ((gp.x < pad) || (gp.x > window.innerWidth - pad) || (gp.y < pad) || (gp.y > window.innerHeight - pad)) {
+                const sidebarWidth = $("#sidebar").width();
+                if ((gp.x < pad) || (gp.x > window.innerWidth - pad - sidebarWidth) || (gp.y < pad) || (gp.y > window.innerHeight - pad)) {
                     canvas.animatePan(this.center);
                 }
             }
@@ -147,7 +148,7 @@ function patch_AnimatePromise() {
 
             if (name) this.terminateAnimation(name);
             let animate;
-            return new Promise((resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
                 animate = dt => fn(dt, resolve, reject, attributes, duration, ontick, ease);
                 this.ticker.add(animate, context);
                 if (name) this.animations[name] = {fn: animate, context, resolve};
@@ -160,7 +161,10 @@ function patch_AnimatePromise() {
                 const isCompleted = name && (this.animations[name]?.fn === animate);
                 if ( isCompleted ) delete this.animations[name];
             });
-
+            
+            // Store the promise
+           if ( name in this.animations ) this.animations[name].promise = promise;
+           return promise;
         },
         "OVERRIDE"
     );
